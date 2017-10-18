@@ -11,7 +11,7 @@ TFIDFViewer
 :Authors:
     bejar
 
-:Version: 
+:Version:
 
 :Date:  05/07/2017
 """
@@ -87,11 +87,20 @@ def toTFIDF(client, index, file_id):
 
     dcount = doc_count(client, index)
 
+    #Get number of docs that is de term i in all index
+    for (t,_) in file
+
     tfidfw = []
+
     for (t, w),(_, df) in zip(file_tv, file_df):
-        #
-        # Something happens here
-        #
+        # 1. Calculo tfid
+        # nombre freq del doc entre freq total
+        tfid = w / max_freq;
+        # 2. Calculo idfi (inversa freq del doc sobre el term i)
+        idfi = math.log2(dcount / df);
+        # 3. Calculo final
+        weight = tfid * idfi;
+        tfidfw.add_argument([t,weight]);
         pass
 
     return normalize(tfidfw)
@@ -102,9 +111,9 @@ def print_term_weigth_vector(twv):
     :param twv:
     :return:
     """
-    #
-    # Program something here
-    #
+    sortedWords = sorted(twv, key=twv.get, reverse = True)
+    for (t,w) in sortedWords:
+        print('%d,%s' % (t,w));
     pass
 
 
@@ -115,10 +124,7 @@ def normalize(tw):
     :param tw:
     :return:
     """
-    #
-    # Program something here
-    #
-    return None
+    return [float(w)/sum(tw) for _,w in tw];
 
 
 def cosine_similarity(tw1, tw2):
@@ -178,4 +184,3 @@ if __name__ == '__main__':
 
     except NotFoundError:
         print('Index %s does not exists' % index)
-
