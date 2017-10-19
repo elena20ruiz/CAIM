@@ -23,6 +23,9 @@ from elasticsearch.client import CatClient
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
 from scipy import spatial
+import numpy as np
+
+import math
 
 import argparse
 
@@ -91,14 +94,15 @@ def toTFIDF(client, index, file_id):
     tfidfw = []
 
     for (t, w),(_, df) in zip(file_tv, file_df):
+        " NEW CODI"
         # 1. Calculo tfid
         # nombre freq del doc entre freq total
         tfid = w / max_freq
         # 2. Calculo idfi (inversa freq del doc sobre el term i)
-        idfi = math.log2(dcount / df)
+        idfi = math.log(dcount / df,2)
         # 3. Calculo final
         weight = tfid * idfi
-        tfidfw[t] = weight
+        tfidfw.append([t,weight])
         pass
 
     return normalize(tfidfw)
@@ -109,9 +113,9 @@ def print_term_weigth_vector(twv):
     :param twv:
     :return:
     """
-    sortedWords = sorted(twv, key=twv.get, reverse = True)
-    for (t,w) in sortedWords:
-        print('%d,%s' % (t,w));
+    "NEW CODI"
+    for t,w in twv:
+        print('%d,%s' % (w,t))
     pass
 
 
@@ -122,7 +126,12 @@ def normalize(tw):
     :param tw:
     :return:
     """
-    return [float(w)/sum(tw) for _,w in tw]
+	"NEW CODI"
+    suma = 0
+    for _,x in tw:
+        suma += x
+
+    return [float(w)/suma for _,w in tw]
 
 
 def cosine_similarity(tw1, tw2):
@@ -132,10 +141,15 @@ def cosine_similarity(tw1, tw2):
     :param tw2:
     :return:
     """
-    #
-    # Program something here
-    #
-    return [ (d1*d2)/(math.sqrt(d1*d1)*math.sqrt(d2*d2)) for (_,d1),(_,d2) in zip(tw1,tw2)]
+    "NEW CODI"
+    if len(tw1) > len(tw2):
+        dot_product = np.dot(tw1[0:(len(tw2)-1)], tw2[0:(len(tw2)-1)])
+    else:
+        dot_product = np.dot(tw1[1:(len(tw1)-1)], tw2[1:(len(tw1)-1)])
+
+    norm_a = np.linalg.norm(tw1)
+    norm_b = np.linalg.norm(tw2)
+    return dot_product / (norm_a * norm_b)
 
 def doc_count(client, index):
     """
