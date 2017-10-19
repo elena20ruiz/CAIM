@@ -22,6 +22,7 @@ from elasticsearch.exceptions import NotFoundError
 from elasticsearch.client import CatClient
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
+from scipy import spatial
 
 import argparse
 
@@ -87,20 +88,17 @@ def toTFIDF(client, index, file_id):
 
     dcount = doc_count(client, index)
 
-    #Get number of docs that is de term i in all index
-    for (t,_) in file
-
     tfidfw = []
 
     for (t, w),(_, df) in zip(file_tv, file_df):
         # 1. Calculo tfid
         # nombre freq del doc entre freq total
-        tfid = w / max_freq;
+        tfid = w / max_freq
         # 2. Calculo idfi (inversa freq del doc sobre el term i)
-        idfi = math.log2(dcount / df);
+        idfi = math.log2(dcount / df)
         # 3. Calculo final
-        weight = tfid * idfi;
-        tfidfw.add_argument([t,weight]);
+        weight = tfid * idfi
+        tfidfw[t] = weight
         pass
 
     return normalize(tfidfw)
@@ -124,7 +122,7 @@ def normalize(tw):
     :param tw:
     :return:
     """
-    return [float(w)/sum(tw) for _,w in tw];
+    return [float(w)/sum(tw) for _,w in tw]
 
 
 def cosine_similarity(tw1, tw2):
@@ -137,7 +135,7 @@ def cosine_similarity(tw1, tw2):
     #
     # Program something here
     #
-    return 0
+    return [ (d1*d2)/(math.sqrt(d1*d1)*math.sqrt(d2*d2)) for (_,d1),(_,d2) in zip(tw1,tw2)]
 
 def doc_count(client, index):
     """
