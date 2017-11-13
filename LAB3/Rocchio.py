@@ -24,7 +24,9 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
 import argparse
+import math
 
+from elasticsearch.client import CatClient
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
 
@@ -34,6 +36,57 @@ __author__ = 'bejar'
 """
 FUNCIONS LABS ANTERIORS
 """
+def doc_count(client, index):
+    """
+    Returns the number of documents in an index
+
+    :param client:
+    :param index:
+    :return:
+    """
+    return int(CatClient(client).count(index=[index], format='json')[0]['count'])
+
+def search_file_by_path(client, index, path):
+    """
+    Search for a file using its path
+
+    :param path:
+    :return:
+    """
+    s = Search(using=client, index=index)
+    q = Q('match', path=path)  # exact search in the path field
+    s = s.query(q)
+    result = s.execute()
+
+    lfiles = [r for r in result]
+    if len(lfiles) == 0:
+        raise NameError('File [%s] not found'%path)
+    else:
+        return lfiles[0].meta.id
+
+
+def document_term_vector(client, index, id):
+    """
+    Returns the term vector of a document and its statistics a two sorted list of pairs (word, count)
+    The first one is the frequency of the term in the document, the second one is the number of documents
+    that contain the term
+
+    :param client:
+    :param index:
+    :param id:
+    :return:
+    """
+    termvector = client.termvectors(index=index, doc_type='document', id=id, fields=['text'],
+                                    positions=False, term_statistics=True)
+
+    file_td = {}
+    file_df = {}
+
+    if 'text' in termvector['term_vectors']:
+        for t in termvector['term_vectors']['text']['terms']:
+            file_td[t] = termvector['term_vectors']['text']['terms'][t]['term_freq']
+            file_df[t] = termvector['term_vectors']['text']['terms'][t]['doc_freq']
+    return sorted(file_td.items()), sorted(file_df.items())
 
 def normalize(tw):
     """
@@ -43,9 +96,14 @@ def normalize(tw):
     :return:
     """
     suma = 0
-    for _,x in tw:
+    for _,x in tw.items():
         suma += x
-    return [float(w)/suma for _,w in tw]
+
+    result = {}
+    for t,w in tw.items():
+        result[t] = float(w)/suma
+
+    return result
 
 def toTFIDF(client, index, file_id):
     """
@@ -58,65 +116,104 @@ def toTFIDF(client, index, file_id):
     max_freq = max([f for _, f in file_tv])
     dcount = doc_count(client, index)
 
-    tfidfw = []
+    tfidfw = {}
     for (t, w),(_, df) in zip(file_tv, file_df):
         # 1. Calculo tfid: nombre freq del doc entre freq total
         tfid = w / max_freq
         # 2. Calculo idfi (inversa freq del doc sobre el term i)
         idfi = math.log(dcount / df,2)
         weight = tfid * idfi
-        tfidfw.append([t,weight])
+        tfidfw[t] = weight
         pass
     return normalize(tfidfw)
 
-def RocchioRule(alpha,query,beta,mean):
+def RocchioRule(alpha,beta,lquery,tfidfwquery,nhits):
     """
     NOU CODI
     Aplica la regla de Rocchio aplicant els parametres d'entrada
     """
-    #1.Transformar query en diccionari amb pesos
-    dquery = {}
+    newquery= {}
+    for word, weight in lquery.items():
+
+        meank = tfidfwquery[word]/nhits
+        w = int(alpha)*int(weight)
+        w += int(beta)*int(meank)
+        newquery[word] = w
+
+    return newquery
+
+def query2list(query):
+    """
+    Return the same input of the query in list format
+    :param: String of a query
+    :return: List of [word,weight]
+    """
+    l = {}
     for word in query:
         if "^" not in word:
-            dquery.append(word,1)
+            l[word] = 1
         else:
             s = word.split("^")
-            dquery.append([s[0],s[1]])
+            l[s[0]] = s[1]
+    return l
 
-    #2. Calcular nous pesos
-    newquery= {}
-    for q in dquery:
-        w = alpha*q + beta*mean
-        newquery.append([q.key,w])
+def list2query(lquery):
+    """
+    Return a query in string format
+    :param: List of [word,weight]
+    :return: String of a query
+    """
+    sq=""
+    for t,w in lquery.items():
 
-    #TODO: 3. Passar un altre cop de diccionari a query
-    newq = ""
-    for nq in newquery:
-        newq.join(nq[0],"^",nq[1]," ")
-    return newq
+        strw =  str(int(w))
+        sq += t+"^"+strw+" "
 
+    return sq
+
+def calculateTFIDFofList(lquery,docsit,client,index):
+    """
+    Return a list of each word of the query. List is: [query, totalD]
+    totalD is the sum of the TFIFD of the k relevants documents
+    :param: words of query, k relevant docs, client and index
+    :return: list of [query, totalD]
+    """
+
+    tfidfwquery = {}
+    #Inicialitzem a 0 totes les paraules
+    for word,_ in lquery.items():
+        tfidfwquery[word] = 0
+
+    for dk in docsit:
+        iddoc = search_file_by_path(client, index, dk.path)
+        result = toTFIDF(client, index, iddoc)
+
+        for word , _ in lquery.items():
+            tfidfwquery[word] += result[word]
+
+    return tfidfwquery
+#Each word have the total weight (not the mean o k docs)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--index', default=None, help='Index to search')
     parser.add_argument('--nhits', default=10, type=int, help='Number of hits to return')
-    parser.add_argument('--query', default=None, nargs=argparse.REMAINDER, help='List of words to search')
     parser.add_argument('--nrounds', default=1, type=int, help='Rounds for applicate Rocchio formula')
     parser.add_argument('-R', default=None, type=int, help='The maximum number of new terms to be kept in the new query')
     parser.add_argument('--alpha', default=None, type=int, help='Alpha weight to a Rocchio rule')
     parser.add_argument('--beta', default=None, type=int, help='Beta weight to a Rocchio rule')
+    parser.add_argument('--query', default=None, nargs=argparse.REMAINDER, help='List of words to search')
     args = parser.parse_args()
 
     index = args.index
     query = args.query
-    print(query)
     nhits = args.nhits
     """
     NOU CODI: Noves entrades
     """
     nrounds = args.nrounds
-    r = args.r
+    r = args.R
     alpha = args.alpha
     beta = args.beta
 
@@ -125,23 +222,52 @@ if __name__ == '__main__':
         s = Search(using=client, index=index)
 
         if query is not None:
-            #FIRST ITERATION: NO ROCCHIO RULE
+            #-------------------------------------------------------------------
+            # COMPUTATION OF INITIAL PARAMETERS
+            #-------------------------------------------------------------------
+            #Get the k documents + relevants
             q = Q('query_string',query=query[0])
             for i in range(1, len(query)):
                 q &= Q('query_string',query=query[i])
 
+
             s = s.query(q)
-            docsit = s[0:nhits].execute()
-            #START NEW ROUNDS APPLYIN ROCCHIO RULE
-            for i in range(0,nrounds):
-                #TODO: Calcular MEAN a partir de docsit
+            response = s[0:nhits].execute()
 
-                q = RocchioRule(alpha,q,beta,mean)  #Retornem nova query
-                #EXECUTEM PER A LA SEGÜENT ITERACIÓ
+            #1. Generate query in vector of [word,weight]
+            lquery = query2list(query)
+            print('IT: %s QUERY =%s' % ('1',  query))
+            #2. tfidfw of each word of the query
+            tfidfwquery = calculateTFIDFofList(lquery,response,client,index)
+
+            #-------------------------------------------------------------------
+            # ROCCHIO
+            #-------------------------------------------------------------------
+            for i in range(3,nrounds):
+                 #Retornem nova query
+                lquery = RocchioRule(alpha,beta,lquery,tfidfwquery,nhits)
+
+                newquery = list2query(lquery)
+
+                print('IT: %s QUERY =%s' % (str(i-1),  newquery))
+
+                q = Q('query_string',query=newquery[0])
+                for i in range(1, len(query)):
+                    q &= Q('query_string',query=newquery[i])
+
                 s = s.query(q)
-                docsit = s[0:nhits].execute()
+                response = s[0:nhits].execute()
+                tfidfwquery = calculateTFIDFofList(lquery,response,client,index)
 
-            #ORDEN FINAL
+            #FINAL ITERATION OF ROCCHIO
+            lquery = RocchioRule(alpha,beta,lquery,tfidfwquery,nhits)  #Retornem query final
+            #RESULT
+            newquery = list2query(lquery)
+            print('IT: %s QUERY =%s' % (str(nrounds),  newquery))
+            q = Q('query_string',query=newquery[0])
+            for i in range(1, len(query)):
+                q &= Q('query_string',query=newquery[i])
+            s = s.query(q)
             response = s[0:nhits].execute()
             for r in response:  # only returns a specific number of results
                 print('ID= %s SCORE=%s' % (r.meta.id,  r.meta.score))

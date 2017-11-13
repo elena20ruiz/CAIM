@@ -1,0 +1,17 @@
+alpha = 3 i beta = 2
+IT: 1 QUERY =['toronto^2', 'nyc^2']
+IT: 2 QUERY =toronto^6 nyc^6
+IT: 3 QUERY =toronto^18 nyc^18
+IT: 4 QUERY =toronto^54 nyc^54
+IT: 5 QUERY =toronto^162 nyc^162
+IT: 6 QUERY =toronto^486 nyc^486
+IT: 7 QUERY =toronto^1458 nyc^1458
+IT: 8 QUERY =toronto^4374 nyc^4374
+IT: 9 QUERY =toronto^13122 nyc^13122
+IT: 10 QUERY =toronto^39366 nyc^39366
+ID= AV97zXsMUEjMQ9velOQv SCORE=29.040743
+PATH= 20_newsgroups/talk.politics.guns/0015998
+TEXT: Jim De Arras (jmd@cube.handheld.com) wrote:
+: > La
+-----------------------------------------------------------------
+1 Documents

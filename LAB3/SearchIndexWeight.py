@@ -20,11 +20,12 @@ SearchIndex
 
 """
 from __future__ import print_function
-from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import NotFoundError
 
 import argparse
 
+from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import NotFoundError
+from elasticsearch.client import CatClient
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
 
@@ -37,7 +38,6 @@ def normalize(tw):
     :param tw:
     :return:
     """
-	"NEW CODI"
     suma = 0
     for _,x in tw:
         suma += x

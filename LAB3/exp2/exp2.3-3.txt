@@ -1,0 +1,36 @@
+IT: 1 QUERY =['all^2', 'the']
+IT: 2 QUERY =all^8 the^4 
+IT: 3 QUERY =all^32 the^16 
+IT: 4 QUERY =all^128 the^64 
+IT: 5 QUERY =all^512 the^256 
+IT: 6 QUERY =all^2048 the^1024 
+IT: 7 QUERY =all^8192 the^4096 
+IT: 8 QUERY =all^32768 the^16384 
+IT: 9 QUERY =all^131072 the^65536 
+IT: 10 QUERY =all^524288 the^262144 
+ID= AV97zaWKUEjMQ9velPKA SCORE=66.03832
+PATH= 20_newsgroups/sci.med/0013501
+TEXT: L(>  levin@bbn.com (Joel B Levin) writes:
+L(>  Joh
+-----------------------------------------------------------------
+ID= AV97zaDNUEjMQ9velPDj SCORE=54.30611
+PATH= 20_newsgroups/talk.politics.misc/0016510
+TEXT: Posted for L. Neil Smith by Cathy Smith
+In article
+-----------------------------------------------------------------
+ID= AV97zXsPUEjMQ9velOSH SCORE=54.30611
+PATH= 20_newsgroups/talk.politics.guns/0016510
+TEXT: Posted for L. Neil Smith by Cathy Smith
+In article
+-----------------------------------------------------------------
+ID= AV97zaDLUEjMQ9velPBJ SCORE=52.613964
+PATH= 20_newsgroups/talk.politics.misc/0018805
+TEXT: Posted for L. Neil Smith by Cathy Smith
+In article
+-----------------------------------------------------------------
+ID= AV97zc_AUEjMQ9velQwZ SCORE=52.485603
+PATH= 20_newsgroups/talk.religion.misc/0019612
+TEXT: cotera@woods.ulowell.edu writes:
+>Once again, wher
+-----------------------------------------------------------------
+304 Documents

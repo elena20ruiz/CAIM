@@ -1,0 +1,35 @@
+IT: 1 QUERY =['all', 'the']
+IT: 2 QUERY =all^3 the^3 
+IT: 3 QUERY =all^9 the^9 
+IT: 4 QUERY =all^27 the^27 
+IT: 5 QUERY =all^81 the^81 
+IT: 6 QUERY =all^243 the^243 
+IT: 7 QUERY =all^729 the^729 
+IT: 8 QUERY =all^2187 the^2187 
+IT: 9 QUERY =all^6561 the^6561 
+IT: 10 QUERY =all^19683 the^19683 
+ID= AV97zaWKUEjMQ9velPKA SCORE=64.31326
+PATH= 20_newsgroups/sci.med/0013501
+TEXT: L(>  levin@bbn.com (Joel B Levin) writes:
+L(>  Joh
+-----------------------------------------------------------------
+ID= AV97zaDNUEjMQ9velPDj SCORE=53.143265
+PATH= 20_newsgroups/talk.politics.misc/0016510
+TEXT: Posted for L. Neil Smith by Cathy Smith
+In article
+-----------------------------------------------------------------
+ID= AV97zXsPUEjMQ9velOSH SCORE=53.143265
+PATH= 20_newsgroups/talk.politics.guns/0016510
+TEXT: Posted for L. Neil Smith by Cathy Smith
+In article
+-----------------------------------------------------------------
+ID= AV97zaDLUEjMQ9velPBJ SCORE=51.514366
+PATH= 20_newsgroups/talk.politics.misc/0018805
+TEXT: Posted for L. Neil Smith by Cathy Smith
+In article
+-----------------------------------------------------------------
+ID= AV97zfwXUEjMQ9velSB3 SCORE=51.393085
+PATH= 20_newsgroups/rec.sport.baseball/0009136
+TEXT: Since everyone else seems to be running wild with 
+-----------------------------------------------------------------
+304 Documents
