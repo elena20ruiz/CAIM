@@ -6,12 +6,11 @@ import sys
 
 class Edge:
     def __init__ (self, origin=None):
-        self.origin = ... # write appropriate value
-        self.weight = ... # write appropriate value
+        self.origin = origin
+        self.weight = 1.
 
     def __repr__(self):
         return "edge: {0} {1}".format(self.origin, self.weight)
-        
     ## write rest of code that you need for this class
 
 class Airport:
