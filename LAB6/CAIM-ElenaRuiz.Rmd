@@ -1,0 +1,67 @@
+---
+title: "CAIM"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Task 1: Generar gráfico sobre el model Watts-Strogazt
+
+## Generar modelo
+
+```{r}
+require(igraph)
+
+# Misma semilla de aleatoriedad
+set.seed(1)
+
+# Probabilitat es a la determinar
+ws <- watts.strogatz.game(1, 100, 4, p) 
+```
+
+## Cálculo del clustering coeficient
+
+```{r}
+# Calculo del coeficiente total de un grafo con una probabilidad concreta
+
+x <- data.frame("prob" = c(rep(1:1000)), "average" = c(rep(1:1000))) 
+
+x$prob <-x$prob/1000 #Vector de probabilidades
+
+# Initialize coef i average
+x$coef <- 0
+x$average <- 0
+
+for(i in 1:1000) {
+  graph_i <- watts.strogatz.game(1, 100, 4, x$prob[i])
+  x$coef[i] <- transitivity(graph_i)
+  x$average[i] <- average.path.length(gfaph_i)
+}
+
+```
+
+## Normalización de los datos
+
+```{r}
+x$coef_n <- (x$coef-min(x$coef))/(max(x$coef)-min(x$coef))
+x$average_n <- (x$average-min(x$average))/(max(x$average)-min(x$average))
+```
+
+
+## Display el gráfico calculado
+
+```{r}
+plot(x$prob,x$coef,type="p",col="red")
+points(x$prob,x$average,col="green")
+```
+
+
+# Task 2: Trabajando con edges.txt
+
+
+```{r}
+g <- read.graph("edges.txt", format="edgelist")
+
+```
